@@ -3,9 +3,8 @@ const path = require('path');
 const express = require('express');
 const connectToDB = require('./src/DB/db');
 const app = require('./src/app');
+const { Server } = require('http');
 
-// Uncomment when DB is ready
-// connectToDB();
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +21,14 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+
+const startServer = async () => {
+  try {
+    await connectToDB();
+    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+  } catch (error) {
+    console.error('💥 Failed to start server', error);
+  }
+}
+
+startServer()
