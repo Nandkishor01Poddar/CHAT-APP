@@ -9,41 +9,51 @@ const inngest = new Inngest({ id: "chat-app" });
 // Your functions:
 
 const syncUser = inngest.createFunction(
-  { id: "sync-user" },
-  { event: "clerk/user.created" },
-  async ({ event }) => {
-    await connectToDB();
+    { id: "sync-user" },
+    { event: "clerk/user.created" },
+    async ({ event }) => {
+        await connectToDB();
 
-    const { id, email_addresses, first_name, last_name, image_url } = event.data;
+        const { id, email_addresses, first_name, last_name, image_url } = event.data;
 
-    const newUser = {
-      clerkId: id,
-      // NOTE: clerk uses "email_address" (singular) on each entry
-      email: email_addresses[0]?.email_address,
-      name: `${first_name || ""} ${last_name || ""}`.trim(),
-      profileImage: image_url
-    };
+        const newUser = {
+            clerkId: id,
+            // NOTE: clerk uses "email_address" (singular) on each entry
+            email: email_addresses[0]?.email_address,
+            name: `${first_name || ""} ${last_name || ""}`.trim(),
+            profileImage: image_url
+        };
 
-    await User.create(newUser);
+        try {
+            await User.create(newUser);
+        } catch (error) {
+            console.error('Failed to create user:', error);
+            throw error; // Re-throw to let Inngest handle retry logic
+        }
 
-    // todo: do something else
-    return { message: "User synced" };
-  }
-);
+        // todo: do something else
+        return { message: "User synced" };
+    }
+)
+
 
 const deleteUserFromDB = inngest.createFunction(
-  { id: "delete-user-from-DB" },
-  { event: "clerk/user.deleted" },
-  async ({ event }) => {
-    await connectToDB();
+    async ({ event }) => {
+        await connectToDB();
 
-    const { id } = event.data;
+        const { id } = event.data;
 
-    await User.deleteOne({ clerkId: id });
+        try {
+            await User.deleteOne({ clerkId: id });
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            throw error; // Re-throw to let Inngest handle retry logic
+        }
 
-    // todo: do something else
-    return { message: "User deleted" };
-  }
+        // todo: do something else
+        return { message: "User deleted" };
+
+    }
 );
 
 // Export the client AND the functions array for the express middleware
