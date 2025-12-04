@@ -7,7 +7,6 @@ const User = require('../models/User');
 const inngest = new Inngest({ id: "chat-app" });
 
 // Your functions:
-
 const syncUser = inngest.createFunction(
     { id: "sync-user" },
     { event: "clerk/user.created" },
