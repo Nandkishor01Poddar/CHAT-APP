@@ -10,11 +10,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    number: {
-        type: Number,
-        unique: true,
-        sparse: true  // Allows multiple null/undefined values
-    },
     profileImage: {
         type: String,
         default: ""

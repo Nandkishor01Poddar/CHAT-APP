@@ -2,6 +2,7 @@
 const { Inngest } = require('inngest');
 const { connectToDB } = require('../DB/db');
 const User = require('../models/User');
+const { upsertStreamUser } = require('./stream');
 
 // Create a client to send and receive events
 const inngest = new Inngest({ id: "chat-app" });
@@ -31,12 +32,20 @@ const syncUser = inngest.createFunction(
         }
 
         // todo: do something else
+        await upsertStreamUser({
+            id: newUser.clerkId.toString(),
+            name: newUser.name,
+            Image: newUser.profileImage
+        })
+
         return { message: "User synced" };
     }
 )
 
 
 const deleteUserFromDB = inngest.createFunction(
+    { id: "delete-user" },                      // config
+    { event: "clerk/user.deleted" },            // trigger
     async ({ event }) => {
         await connectToDB();
 
@@ -50,8 +59,9 @@ const deleteUserFromDB = inngest.createFunction(
         }
 
         // todo: do something else
-        return { message: "User deleted" };
+        await deleteStreamUser(id.toString())
 
+        return { message: "User deleted" };
     }
 );
 
