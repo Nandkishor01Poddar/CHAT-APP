@@ -3,7 +3,6 @@ const path = require('path');
 const express = require('express');
 const connectToDB = require('./src/DB/db');
 const app = require('./src/app');
-const { Server } = require('http');
 
 
 const PORT = process.env.PORT || 3000;
